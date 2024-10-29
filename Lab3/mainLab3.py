@@ -2,9 +2,11 @@ def is_valid_message(message):
     valid_chars = set("AĂÂBCDEFGHIÎJKLMNOPQRSȘTȚUVWXYZ")
     return all(char in valid_chars for char in message)
 
+
 def prepare_message(message):
     message = message.replace(" ", "").upper()
     return ''.join(filter(lambda char: char in "AĂÂBCDEFGHIÎJKLMNOPQRSȘTȚUVWXYZ", message))
+
 
 def generate_key(msg, key):
     key = list(key)
@@ -15,29 +17,31 @@ def generate_key(msg, key):
             key.append(key[i % len(key)])
     return "".join(key)
 
+
 def encrypt_vigenere(msg, key):
     encrypted_text = []
     key = generate_key(msg, key)
+    alphabet = "AĂÂBCDEFGHIÎJKLMNOPQRSȘTȚUVWXYZ"
     for i in range(len(msg)):
         char = msg[i]
-        if char.isupper():
-            encrypted_char = chr((ord(char) + ord(key[i]) - 2 * ord('A')) % 26 + ord('A'))
-        elif char.islower():
-            encrypted_char = chr((ord(char) + ord(key[i]) - 2 * ord('a')) % 26 + ord('a'))
+        if char in alphabet:
+            encrypted_index = (alphabet.index(char) + alphabet.index(key[i])) % len(alphabet)
+            encrypted_char = alphabet[encrypted_index]
         else:
             encrypted_char = char
         encrypted_text.append(encrypted_char)
     return "".join(encrypted_text)
 
+
 def decrypt_vigenere(msg, key):
     decrypted_text = []
     key = generate_key(msg, key)
+    alphabet = "AĂÂBCDEFGHIÎJKLMNOPQRSȘTȚUVWXYZ"
     for i in range(len(msg)):
         char = msg[i]
-        if char.isupper():
-            decrypted_char = chr((ord(char) - ord(key[i]) + 26) % 26 + ord('A'))
-        elif char.islower():
-            decrypted_char = chr((ord(char) - ord(key[i]) + 26) % 26 + ord('a'))
+        if char in alphabet:
+            decrypted_index = (alphabet.index(char) - alphabet.index(key[i]) + len(alphabet)) % len(alphabet)
+            decrypted_char = alphabet[decrypted_index]
         else:
             decrypted_char = char
         decrypted_text.append(decrypted_char)
@@ -67,6 +71,7 @@ def main():
         print("Mesajul decriptat:", decrypted_text)
     else:
         print("Alegere invalidă.")
+
 
 if __name__ == "__main__":
     main()
