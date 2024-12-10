@@ -14,6 +14,8 @@ SERVER_CSR = os.path.join(SERVER_DIR, "server-req.pem")
 CLIENT_KEY = os.path.join(CLIENT_DIR, "client-key.pem")
 CLIENT_CERT = os.path.join(CLIENT_DIR, "client-cert.pem")
 CLIENT_CSR = os.path.join(CLIENT_DIR, "client-req.pem")
+FILE_TO_SIGN = "test_file.txt"
+SIGNATURE_FILE = "file.sig"
 
 
 # Utility Function
@@ -98,9 +100,41 @@ def verify_certificates():
     )
 
 
+# Step 5: Sign a File
+def sign_file():
+    print(f"Signing file {FILE_TO_SIGN} with client private key...")
+    run_command(
+        f"openssl dgst -sha256 -sign {CLIENT_KEY} -out {SIGNATURE_FILE} {FILE_TO_SIGN}",
+        f"Signing file {FILE_TO_SIGN}",
+    )
+
+
+# Step 6: Verify a File's Signature
+def verify_file_signature():
+    print(f"Verifying signature for file {FILE_TO_SIGN}...")
+
+    # Extract public key from the client certificate
+    public_key_file = "temp_pubkey.pem"
+    try:
+        run_command(
+            f"openssl x509 -in {CLIENT_CERT} -pubkey -noout -out {public_key_file}",
+            "Extracting public key from client certificate",
+        )
+
+        # Verify the file's signature using the extracted public key
+        run_command(
+            f"openssl dgst -sha256 -verify {public_key_file} -signature {SIGNATURE_FILE} {FILE_TO_SIGN}",
+            f"Verifying signature of file {FILE_TO_SIGN}",
+        )
+    finally:
+        # Clean up the temporary public key file
+        if os.path.exists(public_key_file):
+            os.remove(public_key_file)
+
+
 # Main Functionality
 parser = argparse.ArgumentParser(description="PKI Setup with OpenSSL")
-parser.add_argument("action", choices=["setup-ca", "setup-server", "setup-client", "verify"], help="Action to perform")
+parser.add_argument("action", choices=["setup-ca", "setup-server", "setup-client", "verify", "sign-file", "verify-file"], help="Action to perform")
 args = parser.parse_args()
 
 if args.action == "setup-ca":
@@ -111,3 +145,7 @@ elif args.action == "setup-client":
     setup_client()
 elif args.action == "verify":
     verify_certificates()
+elif args.action == "sign-file":
+    sign_file()
+elif args.action == "verify-file":
+    verify_file_signature()
